@@ -131,7 +131,7 @@ namespace GoF2Remake.World
             var v = dogTargetVel;
             float ms = Es2Aim.InterceptTime(rel.x, rel.y, rel.z, v.x, v.y, v.z, speed);
             var nativeLead = aimPoint + v * Mathf.Min(ms, 20000f);
-            return smepFighterAi ? SmepAccelerationLead(aimPoint, from, nativeLead) : nativeLead;
+            return SmepEnabledForTarget ? SmepAccelerationLead(aimPoint, from, nativeLead) : nativeLead;
         }
 
         /// <summary>ES2's director: this ship holds fire now, one of a crowd on a player.</summary>
