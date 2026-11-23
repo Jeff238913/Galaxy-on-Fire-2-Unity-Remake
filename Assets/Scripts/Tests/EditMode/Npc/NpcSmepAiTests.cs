@@ -43,7 +43,7 @@ namespace GoF2Remake.Tests
         {
             Assert.IsFalse(new GoF2Remake.Data.CustomTraffic().mobileAi);
             Assert.IsFalse(UnityEngine.JsonUtility.FromJson<GoF2Remake.Data.CustomTraffic>("{}").mobileAi);
-            Assert.IsFalse(UnityEngine.JsonUtility.FromJson<GoF2Remake.Data.CustomTraffic>("{\\"ai\\":\\"smep\\"}").mobileAi);
+            Assert.IsFalse(UnityEngine.JsonUtility.FromJson<GoF2Remake.Data.CustomTraffic>("{\"ai\":\"smep\"}").mobileAi);
         }
 
         [Test]
