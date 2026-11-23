@@ -52,13 +52,7 @@ namespace GoF2Remake.World
         /// <summary>§5.4 fire, turn, bank, move.</summary>
         void Steer(float dtMs)
         {
-            if (smepRestoreShootingEnabled)
-            {
-                shootingEnabled = smepShootingEnabledBaseline;
-                smepRestoreShootingEnabled = false;
-            }
             var smepBeforePosition = transform.position;
-            bool shootingEnabledBeforeSmep = shootingEnabled;
             // Turned and fired at a spot on the target's model (AimAt); the break-off range measured to its centre.
             var aimPos = attacking && !followingWaypoint && target != null ? AimAt(target, dtMs) : targetPos;
             // remake option (NpcShipEs2): EVERSPACE 2's aim, a reticule on the lead that settles by the difficulty
@@ -171,12 +165,6 @@ namespace GoF2Remake.World
             {
                 ApplySmepDogfightTranslation(dtMs, smepBeforePosition);
                 FireSmepReadyPrimaryGuns();
-                if (SmepWideFire)
-                {
-                    smepShootingEnabledBaseline = shootingEnabledBeforeSmep;
-                    smepRestoreShootingEnabled = true;
-                    shootingEnabled = true;
-                }
             }
         }
 

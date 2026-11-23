@@ -37,7 +37,6 @@ namespace GoF2Remake.World
         const float SmepWideFireRange = 4000f, SmepMobileFireAngle = 12f;
 
         bool smepFighterAi, smepHoldFire = true;
-        bool smepRestoreShootingEnabled, smepShootingEnabledBaseline;
         SmepDogfightState smepDogfightState;
         Target smepMotionTarget;
         Vector3 smepMotionPosition, smepMotionVelocity, smepMotionAcceleration, smepMotionSampleVelocity;
@@ -78,13 +77,13 @@ namespace GoF2Remake.World
         }
 
         bool SmepMobileOptIn => Spec != null && (db?.Ship(Spec.ship) as CustomShipData)?.traffic?.mobileAi == true;
-        bool SmepEnabledForTarget => smepFighterAi && SmepAiRules.EnabledForTarget(MobilePlatformTarget(target), SmepMobileOptIn);
-
-        bool SmepEligible => SmepEnabledForTarget && Spec != null && !IsFreighter && !IsFixed && !IsTurret && !IsWingman
-                             && Spec.capital == 0 && !Spec.capitalPart && !Spec.modCapital && !Spec.stationary
-                             && !Spec.structure && !Spec.stationPort && !Spec.eventWreck && Spec.eventTag == 0
-                             && !IsStructure(Spec) && !MissionShip && !StoryShip && ScriptEnemy == null && !turnedEnemy
-                             && order == null && mindControlMs <= 0f;
+        bool SmepHullEligible => smepFighterAi && Spec != null && !IsFreighter && !IsFixed && !IsTurret && !IsWingman
+                                 && Spec.capital == 0 && !Spec.capitalPart && !Spec.modCapital && !Spec.stationary
+                                 && !Spec.structure && !Spec.stationPort && !Spec.eventWreck && Spec.eventTag == 0
+                                 && !IsStructure(Spec) && !MissionShip && !StoryShip && ScriptEnemy == null && !turnedEnemy
+                                 && order == null && mindControlMs <= 0f;
+        bool SmepEnabledForTarget => SmepHullEligible && SmepAiRules.EnabledForTarget(MobilePlatformTarget(target), SmepMobileOptIn);
+        bool SmepEligible => SmepEnabledForTarget;
 
         static bool MobilePlatformTarget(Target t)
         {
@@ -99,20 +98,10 @@ namespace GoF2Remake.World
                               : Application.isMobilePlatform && InputMode.Current == InputKind.Touch;
         }
 
-        bool SmepWideFire
-        {
-            get
-            {
-                if (!SmepEligible || target == null || !target.Alive || !PlayerTarget(target) || MobileTouchTarget(target)
-                    || followingWaypoint || !RoleFires || HoldFire || RadarHidden) return false;
-                return (target.transform.position - transform.position).sqrMagnitude <= SmepWideFireRange * SmepWideFireRange;
-            }
-        }
-
         /// <summary>The Lua mode's multiplayer player pick: desktop first, mobile second, mobile cruisers first of all.</summary>
         void UpdateSmepTargetPriority()
         {
-            if (!SmepEligible || !NetSession.Active || RemotePlayers == null || HostileToRemote == null) return;
+            if (!SmepHullEligible || !NetSession.Active || RemotePlayers == null || HostileToRemote == null) return;
             Target best = null;
             int bestPriority = int.MaxValue;
             float bestDistance = float.MaxValue;

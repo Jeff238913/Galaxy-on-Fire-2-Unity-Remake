@@ -33,8 +33,6 @@ namespace GoF2Remake.World
             chorusFight = null;
             chorusTarget = null;
             dogTarget = null;
-            if (smepRestoreShootingEnabled) shootingEnabled = smepShootingEnabledBaseline;
-            smepRestoreShootingEnabled = false;
             smepFighterAi = false;
             smepHoldFire = true;
             smepDogfightState = null;
