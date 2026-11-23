@@ -43,10 +43,12 @@ namespace GoF2Remake.World
             smepReciprocalHasPosition = false;
 
             int mode = Settings.NpcDogfight;
+            var customTraffic = (db?.Ship(spec.ship) as CustomShipData)?.traffic;
             string ai = mode == SessionRules.DogfightAll ? "gof3" : mode == SessionRules.DogfightEs2All ? "es2"
-                      : mode == SessionRules.DogfightOriginalMode ? null : (db?.Ship(spec.ship) as CustomShipData)?.traffic?.ai;
+                      : mode == SessionRules.DogfightOriginalMode ? null : customTraffic?.ai;
             bool smep = string.Equals(ai, "smep", System.StringComparison.OrdinalIgnoreCase);
-            bool smepEligible = smep && !spec.freighter && spec.fixedObject == null && spec.turretAssembly == null
+            bool smepMobileAllowed = SmepAiRules.EnabledOnPlatform(Application.isMobilePlatform, customTraffic?.mobileAi == true);
+            bool smepEligible = smep && smepMobileAllowed && !spec.freighter && spec.fixedObject == null && spec.turretAssembly == null
                                 && spec.capital == 0 && !spec.capitalPart && !spec.modCapital && !spec.stationary
                                 && !spec.structure && !spec.stationPort && !spec.eventWreck && spec.eventTag == 0
                                 && !IsStructure(spec);

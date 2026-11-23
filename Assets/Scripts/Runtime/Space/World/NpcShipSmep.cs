@@ -14,6 +14,20 @@ using UnityEngine;
 
 namespace GoF2Remake.World
 {
+    /// <summary>Pure SMEP policy shared by runtime and regression tests.</summary>
+    public static class SmepAiRules
+    {
+        /// <summary>SMEP is opt-in on mobile; desktop retains the mod hull's normal opt-in behaviour.</summary>
+        public static bool EnabledOnPlatform(bool mobilePlatform, bool mobileOptIn) => !mobilePlatform || mobileOptIn;
+
+        /// <summary>The wide-fire fallback must honour the same hard stops as the native NPC fire path.</summary>
+        public static bool CanFireFallback(bool shootingEnabled, bool radarHidden, bool holdFire, bool targetable, bool cloaked,
+                                           bool followingWaypoint, bool attacking, bool roleFires, bool smepHoldFire,
+                                           bool es2Suppressed, bool dockedPlayerAbove)
+            => shootingEnabled && !radarHidden && !holdFire && targetable && !cloaked && !followingWaypoint && attacking
+               && roleFires && !smepHoldFire && !es2Suppressed && !dockedPlayerAbove;
+    }
+
     public partial class NpcShip
     {
         const float SmepDogfightRange = 1000f, SmepCloseLimit = 300f;
@@ -349,8 +363,12 @@ namespace GoF2Remake.World
         /// <summary>Fallback for a ready primary gun when the native ES2 scheduler did not fire this frame.</summary>
         void FireSmepReadyPrimaryGuns()
         {
-            if (!SmepEligible || !PlayerTarget(target) || MobileTouchTarget(target) || target == null || !target.Targetable
-                || target.cloaked || followingWaypoint || !attacking || !RoleFires || smepHoldFire || HoldFire || RadarHidden) return;
+            if (!SmepEligible || !PlayerTarget(target) || MobileTouchTarget(target) || target == null || !target.Alive) return;
+            bool dockedPlayerAbove = target.isPlayer && ObjectDocking.PlayerDocked
+                                     && target.transform.position.y > transform.position.y;
+            if (!SmepAiRules.CanFireFallback(shootingEnabled, radarHidden, HoldFire, target.Targetable, target.cloaked,
+                                             followingWaypoint, attacking, RoleFires, smepHoldFire, Es2Suppressed,
+                                             dockedPlayerAbove)) return;
             if ((target.transform.position - transform.position).sqrMagnitude > SmepWideFireRange * SmepWideFireRange) return;
             var aim = Es2Lead(es2AimPoint, transform.position);
             var aimDirection = aim - transform.position;

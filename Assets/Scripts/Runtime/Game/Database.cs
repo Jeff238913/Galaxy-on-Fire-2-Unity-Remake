@@ -591,6 +591,8 @@ namespace GoF2Remake.Data
         /// (Flight.Gof3Dogfight), "es2" (2026-11-06) EVERSPACE 2's (Flight.Es2Dogfight), while Options > Gameplay "NPC dogfighting"
         /// is "Mod hulls' own" (the default); else GoF2's.</summary>
         public string ai;
+        /// <summary>Remake: with "ai": "smep", explicitly allow the SMEP fighter mode on mobile platforms too; off by default.</summary>
+        public bool mobileAi;
         /// <summary>Remake (2026-11-06): with "ai": "gof3", its evasive roll's base chance (GoF3's evadeChanceBase: scouts and T1-T2
         /// hulls 0, T3+ fighters 0.33, T3+ gunships 1, bosses 0.1), capped by the difficulty (Flight.Gof3Dogfight.EvadeChance);
         /// below 0 (unset) = a fighter's 0.33.</summary>
