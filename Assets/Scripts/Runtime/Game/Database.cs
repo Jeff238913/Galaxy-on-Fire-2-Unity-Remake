@@ -587,9 +587,9 @@ namespace GoF2Remake.Data
         /// "webber", "shieldCharger", "armorLink", "antiMissile", "jumpSuppressor", "lootDrone" (never a fighter: the loot drone encounter's,
         /// Modding.ModTraffic.PickLootDrone); empty = an ordinary fighter.</summary>
         public string role;
-        /// <summary>Remake (2026-11-05, the GoF3 roadmap's G6): "gof3" = its NPC fighters fight Galaxy on Fire 3's way
-        /// (Flight.Gof3Dogfight), "es2" (2026-11-06) EVERSPACE 2's (Flight.Es2Dogfight), while Options > Gameplay "NPC dogfighting"
-        /// is "Mod hulls' own" (the default); else GoF2's.</summary>
+        /// <summary>Remake: "gof3" = Galaxy on Fire 3's fight, "es2" = EVERSPACE 2's fight, "smep" = the native SMEP fighter
+        /// mode (ES2 aiming / flight plus SMEP range, strafing and fire rules), all while Options > Gameplay "NPC dogfighting"
+        /// is "Mod hulls' own" (the default); else GoF2's. SMEP needs "mobileAi": true below to run on mobile platforms.</summary>
         public string ai;
         /// <summary>Remake: with "ai": "smep", explicitly allow the SMEP fighter mode on mobile platforms too; off by default.</summary>
         public bool mobileAi;

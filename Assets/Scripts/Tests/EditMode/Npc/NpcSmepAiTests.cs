@@ -18,6 +18,13 @@ namespace GoF2Remake.Tests
         }
 
         [Test]
+        public void ExistingModsDoNotOptIntoMobileSmepByDefault()
+        {
+            Assert.IsFalse(new GoF2Remake.Data.CustomTraffic().mobileAi);
+            Assert.IsFalse(UnityEngine.JsonUtility.FromJson<GoF2Remake.Data.CustomTraffic>("{}").mobileAi);
+        }
+
+        [Test]
         public void FallbackFireHonoursNativeNpcFireRestrictions()
         {
             bool Allowed(bool shootingEnabled = true, bool radarHidden = false, bool holdFire = false, bool targetable = true,
