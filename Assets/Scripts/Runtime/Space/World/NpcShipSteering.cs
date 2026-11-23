@@ -381,6 +381,7 @@ namespace GoF2Remake.World
         /// away (direction += (away - fwd) * speed * 0.03, up = world up) and moves it one extra step.</summary>
         void Avoid(bool landmarks, float dtMs)
         {
+            bool resetSmepReciprocal = !landmarks && !SmepEligible;
             if (SmepEligible && !landmarks)
             {
                 SeparateSmepNpcFromPlayer();
@@ -402,6 +403,11 @@ namespace GoF2Remake.World
                 transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
                 transform.position += transform.forward * speed * dtMs * M;
                 break;
+            }
+            if (resetSmepReciprocal)
+            {
+                smepReciprocalLastPosition = transform.position;
+                smepReciprocalHasPosition = true;
             }
         }
 
