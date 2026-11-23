@@ -52,6 +52,13 @@ namespace GoF2Remake.World
         /// <summary>§5.4 fire, turn, bank, move.</summary>
         void Steer(float dtMs)
         {
+            if (smepRestoreShootingEnabled)
+            {
+                shootingEnabled = smepShootingEnabledBaseline;
+                smepRestoreShootingEnabled = false;
+            }
+            var smepBeforePosition = transform.position;
+            bool shootingEnabledBeforeSmep = shootingEnabled;
             // Turned and fired at a spot on the target's model (AimAt); the break-off range measured to its centre.
             var aimPos = attacking && !followingWaypoint && target != null ? AimAt(target, dtMs) : targetPos;
             // remake option (NpcShipEs2): EVERSPACE 2's aim, a reticule on the lead that settles by the difficulty
@@ -61,8 +68,13 @@ namespace GoF2Remake.World
             // remake options: GoF3's attack runs, veer-offs, tease and chase, its led aim (NpcShipDogfight); EVERSPACE 2's runs
             // past the target, gaining distance, tailed evasion and flight (NpcShipEs2)
             bool dog = Dogfighting, es2 = Es2Fighting, chorusF = ChorusFighting, dogHold = false;
+            if (smepFighterAi) smepHoldFire = !es2;
             if (dog) aimPos = DogfightAim(aimPos, out dogHold, es2Aimed);
-            else if (es2) aimPos = Es2FightGoal(aimPos, dtMs, out dogHold);
+            else if (es2)
+            {
+                aimPos = Es2FightGoal(aimPos, dtMs, out dogHold);
+                if (smepFighterAi) smepHoldFire = dogHold;
+            }
             else if (chorusF) aimPos = ChorusFightGoal(aimPos, out dogHold);   // (remake mods: Chorus's way, NpcShipChorus)
             float formationSpeed = 1f;
             if (!dog && !es2 && !chorusF && FormationSlot(dtMs, out var slot, out formationSpeed)) aimPos = slot;   // (GoF3's V formations)
@@ -153,6 +165,17 @@ namespace GoF2Remake.World
 
             if (!Hp.empDisabled)
                 transform.position += (es2Flight ? Es2FlightMove(topSpeed, dtMs) : transform.forward * topSpeed * dtMs * M) + sideStep;
+            if (smepFighterAi)
+            {
+                ApplySmepDogfightTranslation(dtMs, smepBeforePosition);
+                FireSmepReadyPrimaryGuns();
+                if (SmepWideFire)
+                {
+                    smepShootingEnabledBaseline = shootingEnabledBeforeSmep;
+                    smepRestoreShootingEnabled = true;
+                    shootingEnabled = true;
+                }
+            }
         }
 
         /// <summary>Gives the ship an order (null: back to its own AI). Wakes a sleeper, lets a parked ship fly; "hold" is
@@ -368,6 +391,11 @@ namespace GoF2Remake.World
         /// away (direction += (away - fwd) * speed * 0.03, up = world up) and moves it one extra step.</summary>
         void Avoid(bool landmarks, float dtMs)
         {
+            if (SmepEligible && !landmarks)
+            {
+                SeparateSmepNpcFromPlayer();
+                return;   // retain the Lua mode's reciprocal contact, skip native non-landmark avoidance
+            }
             var all = Obstacle.All;
             var pos = transform.position;
             int frame = Time.frameCount;
@@ -383,7 +411,7 @@ namespace GoF2Remake.World
                 var dir = (fwd + (p - fwd) * speed * 0.03f).normalized;
                 transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
                 transform.position += transform.forward * speed * dtMs * M;
-                return;
+                break;
             }
         }
 

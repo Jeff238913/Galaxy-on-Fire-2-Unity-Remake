@@ -150,6 +150,16 @@ simulates an orbit's traffic) and `ship_combat.md` (+ `Reference/tools/combat/co
   turrets, fixed objects, capital ships keep GoF2's flight; coming back from them the velocity picks up the heading x the
   speed. Left out: ES2's steering noise (GoF2's guns fire along the nose) and strafing. Tests `Es2AiTests`. Not tried in Play
   mode.
+- **SMEP fighter AI** (2026-11-23, native C# port of the mod's Lua fighter AI): a mod hull opts in with
+  `"traffic": { "ai": "smep" }` while Options > Gameplay "NPC dogfighting" is set to "Mod hulls' own".
+  No original hull selects it, so it is off by default. It uses the remake's ES2 aim / dogfight / physics flight per hull,
+  adds the Lua's acceleration-aware ballistic lead, range / strafe movement, remote-player priority and ready-primary-gun
+  fallback, and keeps native landmark avoidance plus reciprocal player / NPC mesh contact. As in the Lua performance-test
+  state, the native non-landmark avoidance pass is suppressed for eligible SMEP fighters while reciprocal contact remains.
+  Mobile touch targets keep the reduced behaviour (no custom range / strafe or firing fallback); a mobile player who actually
+  switches to a gamepad or keyboard / mouse is treated as an advanced-control pilot and gets the full behaviour. NetPlayer
+  shares platform and touch-control state with the orbit authority; unknown state defaults to mobile touch. Reciprocal mesh
+  contact uses the existing player probe and readable NPC hulls; it does not force the global ship-collision option.
 - **Turned ships pick at any range** (`PlayerFighter::update` 0xf131e / 0xf1444, `NpcShip.TakesAtAnyRange`): a turned
   ship (`turnedEnemy`, Player+0xe0) of any race but the pirates' takes the player outside its ±50 000 box when it picks
   (not attacking, or the re-roll's random tries); the 5 s re-roll still drops a pick outside the box, and as it leaves
@@ -330,13 +340,7 @@ simulates an orbit's traffic) and `ship_combat.md` (+ `Reference/tools/combat/co
   fighter is gone, so near misses miss. The player's ship: a probe sphere (a third of the model's largest extent, 3..60
   m) pushed out of every landmark's / freighter's / other player's hull it overlaps (`PlayerCollision.CheckHulls`,
   `Physics.ComputePenetration`; it only resolves while the sphere's centre is outside, which flight never crosses),
-  sliding along it, flying through its gaps; fighters stay pass-through. Since 2026-11-20 (after SpectreAnims's #364,
-  which used a sphere per slice: too fat for a flat ship) the push uses the ship's outline instead: the model cut along
-  its length into up to 8 boxes round its hull's points (`ModCapitalShips.Measure`, at least 2 m a side), trigger
-  `BoxCollider`s on `ProbeLayer` under the model so they turn with it (`PlayerCollision.EnsureHullBoxes`,
-  `HullCollision.OverlapBox`); the sphere stays for the sweep, for shots (`hitSphereRadius`) and when nothing was
-  measured. Turning against a hull pushes the ship out too. Only against hulls: Original's volumes keep the ship's
-  centre point. Not flown yet. An obstacle without volumes (a mod station's
+  sliding along it, flying through its gaps; fighters stay pass-through. An obstacle without volumes (a mod station's
   `"collision": "none"`) has no hull contact either. From a contributor's precise-collision version (2026-10-11,
   ported): the probe is also swept from last frame's place each frame (`PlayerCollision.SweepHulls`,
   `HullCollision.Sweep`: half the probe as a sphere, which a ship resting on a hull doesn't start inside, and the centre

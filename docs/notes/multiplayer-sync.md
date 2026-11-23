@@ -2,6 +2,11 @@
 
 Notes moved from `CLAUDE.md` (its index lists every notes file). Code comments citing `CLAUDE.md "<section>"` mean the section or bullet of that name here.
 
+- **Player control platform** (2026-11-23): NetPlayer owner-writes two change-only flags, `mobilePlatform` and
+  `mobileTouchControls`. The orbit authority copies them onto the remote player's Target for mod-selected SMEP AI;
+  both default true until the owner reports, so a late / unknown client is conservatively treated as mobile touch.
+  `mobileTouchControls` is false on mobile after InputMode switches to gamepad or keyboard / mouse.
+
 ## Multiplayer (remake-only)
 
 - **NPCs and the players** (the authority's `NpcShip` hooks, set by NetOrbit): every other player in the orbit is in an
