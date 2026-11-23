@@ -2,7 +2,7 @@
 // NpcShip, part: the optional SMEP fighter flight mode (a mod hull's traffic.ai = "smep").
 // It uses the remake's native ES2 aim, dogfight and physics flight, then adds the Lua mode's range/strafe,
 // acceleration-aware ballistic lead, remote-player priority, firing fallback and reciprocal player/hull contact.
-// Mobile touch pilots keep the reduced behaviour; mobile gamepad / keyboard-mouse pilots use the full mode.
+// Mobile builds and mobile multiplayer targets require traffic.mobileAi: true; opted-in touch pilots retain reduced behaviour.
 
 using System.Collections.Generic;
 using GoF2Remake.Data;
@@ -17,8 +17,11 @@ namespace GoF2Remake.World
     /// <summary>Pure SMEP policy shared by runtime and regression tests.</summary>
     public static class SmepAiRules
     {
-        /// <summary>SMEP is opt-in on mobile; desktop retains the mod hull's normal opt-in behaviour.</summary>
+        /// <summary>SMEP is opt-in on mobile builds; desktop retains the mod hull's normal opt-in behaviour.</summary>
         public static bool EnabledOnPlatform(bool mobilePlatform, bool mobileOptIn) => !mobilePlatform || mobileOptIn;
+
+        /// <summary>On desktop hosts, the same opt-in protects mobile players connected to the orbit.</summary>
+        public static bool EnabledForTarget(bool mobileTarget, bool mobileOptIn) => !mobileTarget || mobileOptIn;
 
         /// <summary>The wide-fire fallback must honour the same hard stops as the native NPC fire path.</summary>
         public static bool CanFireFallback(bool shootingEnabled, bool radarHidden, bool holdFire, bool targetable, bool cloaked,
@@ -74,7 +77,10 @@ namespace GoF2Remake.World
             public bool retreating;
         }
 
-        bool SmepEligible => smepFighterAi && Spec != null && !IsFreighter && !IsFixed && !IsTurret && !IsWingman
+        bool SmepMobileOptIn => Spec != null && (db?.Ship(Spec.ship) as CustomShipData)?.traffic?.mobileAi == true;
+        bool SmepEnabledForTarget => smepFighterAi && SmepAiRules.EnabledForTarget(MobilePlatformTarget(target), SmepMobileOptIn);
+
+        bool SmepEligible => SmepEnabledForTarget && Spec != null && !IsFreighter && !IsFixed && !IsTurret && !IsWingman
                              && Spec.capital == 0 && !Spec.capitalPart && !Spec.modCapital && !Spec.stationary
                              && !Spec.structure && !Spec.stationPort && !Spec.eventWreck && Spec.eventTag == 0
                              && !IsStructure(Spec) && !MissionShip && !StoryShip && ScriptEnemy == null && !turnedEnemy
@@ -113,6 +119,7 @@ namespace GoF2Remake.World
             var origin = transform.position;
             foreach (var candidate in RemotePlayers)
             {
+                if (MobilePlatformTarget(candidate) && !SmepMobileOptIn) continue;
                 if (!Pursuable(candidate) || !HostileToRemote(this, candidate)) continue;
                 float detect = (detectRange > 0f ? detectRange : NpcTables.DetectRange) * M;
                 if ((candidate.transform.position - origin).sqrMagnitude > detect * detect) continue;

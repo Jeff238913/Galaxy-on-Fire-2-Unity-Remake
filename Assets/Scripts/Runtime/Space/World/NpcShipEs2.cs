@@ -37,9 +37,11 @@ namespace GoF2Remake.World
         void SetupEs2Fight() => es2Fight = new Es2Dogfight(Es2Dogfight.RollChanceFor(Session.Difficulty), () => Random.value);
 
         /// <summary>It fights ES2's way this frame: attacking a target on its own (no route, order, wingman duty).</summary>
-        bool Es2Fighting => es2Fight != null && !IsWingman && attacking && target != null && !followingWaypoint && order == null && mindControlMs <= 0f;
+        bool Es2Fighting => es2Fight != null && (!smepFighterAi || SmepEnabledForTarget) && !IsWingman
+                            && attacking && target != null && !followingWaypoint && order == null && mindControlMs <= 0f;
 
-        bool Es2Aiming => es2Aim != null && attacking && !followingWaypoint && target != null;
+        bool Es2Aiming => es2Aim != null && (!smepFighterAi || SmepEnabledForTarget || Settings.Es2Aiming)
+                          && attacking && !followingWaypoint && target != null;
 
         static bool PlayerTarget(Target t) => t != null && (t.isPlayer || t.netPilot);
 

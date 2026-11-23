@@ -129,10 +129,11 @@ namespace GoF2Remake.World
                            || !slow.CanTurn;   // remake: an EMP device's slow
             float dogSpeed = dog ? dogfight.SpeedFactor * Gof3EasySlowdown() : chorusF ? chorusFight.SpeedFactor : formationSpeed;   // (GoF3's Easy: slower in your sights)
             float topSpeed = speed * slow.SpeedFactor * roleSpeedFactor * dogSpeed * RolePace;   // (remake mods: a pursuer's pace)   // units a ms (remake: a rift's)
+            bool useEs2Flight = es2Flight && (!smepFighterAi || SmepEnabledForTarget || Settings.Es2NpcFlight);
             if (!noSteer && !Hp.empDisabled)
             {
                 Vector3 h;
-                if (es2Flight) h = Es2FlightTurn(dirN, topSpeed, dtMs);   // remake option: EVERSPACE 2's physics flight (NpcShipEs2Flight)
+                if (useEs2Flight) h = Es2FlightTurn(dirN, topSpeed, dtMs);   // remake option: EVERSPACE 2's physics flight (NpcShipEs2Flight)
                 else
                 {
                     var delta = dirN - fwd;
@@ -159,12 +160,13 @@ namespace GoF2Remake.World
             bank = Mathf.MoveTowards(bank, bankTarget, step);
             if (Mathf.Approximately(bank, before)) { levelTimer -= dtMs; if (levelTimer <= 0f) levelling = true; }
             else levelTimer = 750f;
-            float barrel = es2Fight != null ? Es2Roll(dtMs, out var sideStep) : DogfightRoll(dtMs, out sideStep);   // remake options: GoF3's evasive roll (NpcShipDogfight), ES2's barrel roll (NpcShipEs2)
+            bool useSmepEs2Fight = es2Fight != null && (!smepFighterAi || SmepEnabledForTarget);
+            float barrel = useSmepEs2Fight ? Es2Roll(dtMs, out var sideStep) : DogfightRoll(dtMs, out sideStep);   // remake options: GoF3's evasive roll (NpcShipDogfight), ES2's barrel roll (NpcShipEs2)
             if (model != null) model.localRotation = Quaternion.AngleAxis(bank * Mathf.PI / 4096f * Mathf.Rad2Deg + barrel, Vector3.forward);
             if (levelling) Roll(dtMs);
 
             if (!Hp.empDisabled)
-                transform.position += (es2Flight ? Es2FlightMove(topSpeed, dtMs) : transform.forward * topSpeed * dtMs * M) + sideStep;
+                transform.position += (useEs2Flight ? Es2FlightMove(topSpeed, dtMs) : transform.forward * topSpeed * dtMs * M) + sideStep;
             if (smepFighterAi)
             {
                 ApplySmepDogfightTranslation(dtMs, smepBeforePosition);
