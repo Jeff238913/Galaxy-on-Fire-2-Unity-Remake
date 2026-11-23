@@ -31,6 +31,8 @@ namespace GoF2Remake.World
         static PlayerCollision smepPlayerCollision;
         static readonly List<SmepColliderSnapshot> smepContactCandidates = new List<SmepColliderSnapshot>(64);
         static readonly List<SmepPlayerShapeSnapshot> smepPlayerShapes = new List<SmepPlayerShapeSnapshot>(4);
+        static PlayerCollision smepPlayerShapeOwner;
+        static int smepPlayerShapeFrame = -1;
 
         struct SmepPlayerShapeSnapshot
         {
@@ -400,21 +402,26 @@ namespace GoF2Remake.World
             var absTravel = new Vector3(Mathf.Abs(travel.x), Mathf.Abs(travel.y), Mathf.Abs(travel.z));
             int steps = Mathf.Clamp(Mathf.CeilToInt(travel.magnitude / 4f), 1, 16);
 
-            // Snapshot the player's native collision boxes once for this NPC pass. A probe sphere is the fallback
-            // on models without hull boxes, matching PlayerCollision's own collision path.
-            smepPlayerShapes.Clear();
-            int shapeCount = collision.SmepShapeCount;
-            for (int i = 0; i < shapeCount; i++)
+            // Snapshot the player's native collision boxes once per frame, shared by every SMEP fighter.
+            // A probe sphere is the fallback on models without hull boxes.
+            if (smepPlayerShapeOwner != collision || smepPlayerShapeFrame != Time.frameCount)
             {
-                var shape = collision.SmepShapeAt(i);
-                if (shape == null || !shape.enabled || !shape.gameObject.activeInHierarchy) continue;
-                smepPlayerShapes.Add(new SmepPlayerShapeSnapshot
+                smepPlayerShapes.Clear();
+                int shapeCount = collision.SmepShapeCount;
+                for (int i = 0; i < shapeCount; i++)
                 {
-                    collider = shape,
-                    bounds = shape.bounds,
-                    position = shape.transform.position,
-                    rotation = shape.transform.rotation,
-                });
+                    var shape = collision.SmepShapeAt(i);
+                    if (shape == null || !shape.enabled || !shape.gameObject.activeInHierarchy) continue;
+                    smepPlayerShapes.Add(new SmepPlayerShapeSnapshot
+                    {
+                        collider = shape,
+                        bounds = shape.bounds,
+                        position = shape.transform.position,
+                        rotation = shape.transform.rotation,
+                    });
+                }
+                smepPlayerShapeOwner = collision;
+                smepPlayerShapeFrame = Time.frameCount;
             }
             if (smepPlayerShapes.Count == 0)
             {
