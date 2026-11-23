@@ -23,6 +23,10 @@ namespace GoF2Remake.World
         /// <summary>On desktop hosts, the same opt-in protects mobile players connected to the orbit.</summary>
         public static bool EnabledForTarget(bool mobileTarget, bool mobileOptIn) => !mobileTarget || mobileOptIn;
 
+        /// <summary>Classifies local and remote player targets using the owning player's platform, not the host's.</summary>
+        public static bool IsMobileTarget(bool isPlayer, bool netPilot, bool remoteMobilePlatform, bool localMobilePlatform)
+            => (isPlayer || netPilot) && (netPilot ? remoteMobilePlatform : localMobilePlatform);
+
         /// <summary>The wide-fire fallback must honour the same hard stops as the native NPC fire path.</summary>
         public static bool CanFireFallback(bool shootingEnabled, bool radarHidden, bool holdFire, bool targetable, bool cloaked,
                                            bool followingWaypoint, bool attacking, bool roleFires, bool smepHoldFire,
@@ -86,10 +90,7 @@ namespace GoF2Remake.World
         bool SmepEligible => SmepEnabledForTarget;
 
         static bool MobilePlatformTarget(Target t)
-        {
-            if (t == null || (!t.isPlayer && !t.netPilot)) return false;
-            return t.netPilot ? t.mobilePlatform : Application.isMobilePlatform;
-        }
+            => t != null && SmepAiRules.IsMobileTarget(t.isPlayer, t.netPilot, t.mobilePlatform, Application.isMobilePlatform);
 
         static bool MobileTouchTarget(Target t)
         {

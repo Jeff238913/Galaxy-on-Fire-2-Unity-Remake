@@ -26,11 +26,24 @@ namespace GoF2Remake.Tests
             Assert.AreEqual(expected, SmepAiRules.EnabledForTarget(mobileTarget, mobileOptIn));
         }
 
+        [TestCase(true, false, false, true, true)]
+        [TestCase(true, false, false, false, false)]
+        [TestCase(false, true, true, false, true)]
+        [TestCase(false, true, false, true, false)]
+        [TestCase(false, false, false, true, false)]
+        public void MobileTargetClassificationUsesTheOwningPlayersPlatform(bool isPlayer, bool netPilot,
+                                                                            bool remoteMobilePlatform, bool localMobilePlatform,
+                                                                            bool expected)
+        {
+            Assert.AreEqual(expected, SmepAiRules.IsMobileTarget(isPlayer, netPilot, remoteMobilePlatform, localMobilePlatform));
+        }
+
         [Test]
         public void ExistingModsDoNotOptIntoMobileSmepByDefault()
         {
             Assert.IsFalse(new GoF2Remake.Data.CustomTraffic().mobileAi);
             Assert.IsFalse(UnityEngine.JsonUtility.FromJson<GoF2Remake.Data.CustomTraffic>("{}").mobileAi);
+            Assert.IsFalse(UnityEngine.JsonUtility.FromJson<GoF2Remake.Data.CustomTraffic>("{\\"ai\\":\\"smep\\"}").mobileAi);
         }
 
         [Test]
